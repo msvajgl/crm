@@ -1,0 +1,21 @@
+[project]
+name = "uv-crm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "django>=5.2,<6",
+  "django-googler>=0.0.20",
+  "pre-commit>=4.4",
+]
+
+[dependency-groups]
+dev = [
+  "pip>=25.3",
+]
