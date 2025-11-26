@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.conf.global_settings import STATICFILES_DIRS
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,9 +29,17 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = str(os.environ.get("DJANGO_DEBUG")).lower() == "true"
 
-ALLOWED_HOSTS = ["msvajgl.cloud", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "*",
+    "https://msvajgl.cloud",
+    "https://www.msvajgl.cloud",
+]
+
+# because of public tunnel
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 AUTH_USER_MODEL = "auth.User"
+LOGIN_URL = "/auth/google/login/"
 LOGIN_REDIRECT_URL = "/"
 
 # Application definition
@@ -48,10 +58,12 @@ INSTALLED_APPS = [
     "django_googler",
     # custom apps
     "contacts",
+    "events",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -91,6 +103,18 @@ DATABASES = {
     }
 }
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    import dj_database_url  # noqa
+
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            engine="timescale.db.backends.postgresql",
+            conn_max_age=600,
+        )
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -127,6 +151,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "local-cdn"
+STATICFILES_DIRS = [BASE_DIR / "mystaticfiles"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -136,3 +162,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Get these from Google Cloud Console
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+
+GOOGLE_OAUTH_SCOPES = [
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "https://www.googleapis.com/auth/contacts.other.readonly",
+    "https://www.googleapis.com/auth/contacts.readonly",
+]
